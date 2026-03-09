@@ -98,7 +98,7 @@ jobs:
           if-no-files-found: ignore
 
   deploy-pages:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: run-modules
     runs-on: ubuntu-latest
     permissions:
