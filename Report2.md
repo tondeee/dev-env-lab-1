@@ -20,6 +20,7 @@
 ### Частина B: CD та публікація результатів
 1. **Артефакти:** Після кожного успішного виконання модуля результати (логи, звіти) завантажуються як GitHub Actions artifacts (`actions/upload-artifact@v4`).
 2. **GitHub Pages (Bonus):** Налаштовано автоматичне розгортання статичного звіту на GitHub Pages після успішного CI в гілці `main`. Звіт включає згенерований графік розподілу доходів (`income_distribution.png`).
+   - *Примітка:* Для коректної роботи деплою необхідно увімкнути GitHub Pages у налаштуваннях репозиторію (`Settings -> Pages -> Build and deployment -> Source -> GitHub Actions`).
 
 ### Частина C: Self-hosted runner
 1. **Налаштування:** Підключено локальний агент (self-hosted runner) на базі macOS.
