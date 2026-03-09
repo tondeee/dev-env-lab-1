@@ -1,0 +1,24 @@
+* 696a94e (HEAD -> main, tag: v0.1.0) docs: Add CHANGELOG.md
+*   f07cf68 Merge branch 'feature/visualization': added script for data visualization
+|\  
+| * a64f024 (feature/visualization) feat: Add visualization script
+|/  
+*   6bd2c23 Merge branch 'feature/update-readme-2' into main, resolve conflict in README
+|\  
+| * 311f3b0 (feature/update-readme-2) docs: Modify README directory structure in branch 2
+* | 3e59ff1 (feature/update-readme-1) docs: Update README structure description in branch 1
+|/  
+*   35c337d Merge branch 'feature/data_research': added code for data analysis and models
+|\  
+| * 2989526 (feature/data_research) feat: Add data research script for hypothesis analysis
+|/  
+*   30eb3e2 Merge branch 'feature/data_quality_analysis': added script to check data quality
+|\  
+| * b5c422a (feature/data_quality_analysis) feat: Add data quality analysis script
+|/  
+* 38ee35a (feature/data_load) feat: Add data load script
+* 20c9d3c docs: Add project info, dataset link, and hypotheses to README
+* bda6ac3 Initial commit with project structure and .gitignore
+* f12a506 (origin/main, origin/HEAD) feat: add data download script
+* 3f0957d docs: complete Lab 1 report and add initial EDA script
+* ec70534 chore: initial commit with README and gitignore
