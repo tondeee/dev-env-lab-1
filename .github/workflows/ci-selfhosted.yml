@@ -1,0 +1,31 @@
+name: CI (self-hosted)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-visualization-local:
+    # Use your self-hosted runner labels. 
+    # Usually "self-hosted" is the default.
+    runs-on: [self-hosted, macOS]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run visualization module
+        run: |
+          mkdir -p artifacts/visualization
+          cd src
+          python visualization.py > ../artifacts/visualization/run.log 2>&1
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-visualization-selfhosted
+          path: artifacts/visualization

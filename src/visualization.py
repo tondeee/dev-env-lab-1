@@ -9,7 +9,7 @@ def visualize_data(file_path):
         df = pd.read_csv(file_path, sep="\t")
 
         plt.figure(figsize=(10, 6))
-        sns.histplot(df["Income"], bins=50, kde=True)
+        sns.histplot(data=df, x="Income", bins=50, kde=True)
         plt.title("Income Distribution")
         plt.savefig("../reports/figures/income_distribution.png")
         print("Visualization saved to reports/figures/income_distribution.png")

@@ -1,0 +1,146 @@
+name: CI (modules)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      module:
+        description: "Which module to run (or 'all')"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - data_load
+          - data_quality_analysis
+          - data_research
+          - visualization
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      data_load: ${{ steps.filter.outputs.data_load }}
+      data_quality_analysis: ${{ steps.filter.outputs.data_quality_analysis }}
+      data_research: ${{ steps.filter.outputs.data_research }}
+      visualization: ${{ steps.filter.outputs.visualization }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            data_load:
+              - 'src/data_load.sh'
+              - 'data/**'
+            data_quality_analysis:
+              - 'src/data_quality_analysis.py'
+              - 'data/**'
+            data_research:
+              - 'src/data_research.py'
+              - 'data/**'
+            visualization:
+              - 'src/visualization.py'
+              - 'data/**'
+
+  run-modules:
+    needs: changes
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [data_load, data_quality_analysis, data_research, visualization]
+
+    # Run if:
+    # 1. It's a manual run and "all" or specific module is selected
+    # 2. It's not a manual run AND the paths filter says it changed
+    if: |
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module)) ||
+      (github.event_name != 'workflow_dispatch' && needs.changes.outputs[matrix.module] == 'true')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        if: matrix.module != 'data_load'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        if: matrix.module != 'data_load'
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Create artifacts directory
+        run: mkdir -p artifacts/${{ matrix.module }}
+
+      - name: Run module
+        run: |
+          echo "Running ${{ matrix.module }}..."
+          # Change to src directory to run scripts if needed, or handle from root
+          # Scripts use ../data/ so they expect to be run from src/
+          cd src
+          if [ "${{ matrix.module }}" == "data_load" ]; then
+            chmod +x data_load.sh
+            # We skip real data load in CI to avoid kaggle credential issues if it's GitHub-hosted
+            # Unless we want it to fail or have secrets. For now, we'll try to run but catch error.
+            ./data_load.sh || echo "Data load failed (expected in CI without Kaggle credentials)"
+          else
+            python ${{ matrix.module }}.py > ../artifacts/${{ matrix.module }}/run.log 2>&1
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.module }}
+          path: artifacts/${{ matrix.module }}
+          if-no-files-found: ignore
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: run-modules
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+      - name: Prepare Pages
+        run: |
+          mkdir -p public
+          # Copy visualization figure if it exists
+          if [ -d "reports/figures" ]; then cp -r reports/figures public/; fi
+          # Also check artifacts
+          if [ -f "all-artifacts/artifacts-visualization/run.log" ]; then cp all-artifacts/artifacts-visualization/run.log public/; fi
+          
+          echo "<html><body><h1>Lab 2 Results</h1>" > public/index.html
+          echo "<h2>Income Distribution</h2>" >> public/index.html
+          if [ -f "public/figures/income_distribution.png" ]; then
+            echo "<img src='figures/income_distribution.png' width='800'>" >> public/index.html
+          else
+            echo "<p>Visualization image not found in repo (did it run in CI?).</p>" >> public/index.html
+          fi
+          echo "</body></html>" >> public/index.html
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
