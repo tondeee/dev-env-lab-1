@@ -58,7 +58,7 @@ jobs:
     # Run if:
     # 1. It's a manual run and "all" or specific module is selected
     # 2. It's not a manual run AND the paths filter says it changed
-    if: (github.event_name == 'workflow_dispatch' && (github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module)) || (github.event_name != 'workflow_dispatch' && needs.changes.outputs[matrix.module] == 'true')
+    # if: (github.event_name == 'workflow_dispatch' && (github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module)) || (github.event_name != 'workflow_dispatch' && needs.changes.outputs[matrix.module] == 'true')
 
     steps:
       - name: Checkout
