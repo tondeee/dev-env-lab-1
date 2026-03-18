@@ -1,6 +1,14 @@
+import os
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+
+def get_dataset_path():
+    return os.environ.get(
+        "VISUALIZATION_DATA_FILE", "../data/raw/marketing_campaign.csv"
+    )
 
 
 def visualize_data(file_path):
@@ -19,4 +27,4 @@ def visualize_data(file_path):
 
 
 if __name__ == "__main__":
-    visualize_data("../data/raw/marketing_campaign.csv")
+    visualize_data(get_dataset_path())

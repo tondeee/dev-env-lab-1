@@ -8,6 +8,8 @@ jobs:
     # Use your self-hosted runner labels. 
     # Usually "self-hosted" is the default.
     runs-on: [self-hosted, macOS, ARM64]
+    env:
+      VISUALIZATION_DATA_FILE: /Users/dmytroyunko/uni/semester_spring_2026/dev_env_data_modeling/data/raw/marketing_campaign.csv
 
     steps:
       - name: Checkout
