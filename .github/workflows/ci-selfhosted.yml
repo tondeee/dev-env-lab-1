@@ -7,7 +7,7 @@ jobs:
   run-visualization-local:
     # Use your self-hosted runner labels. 
     # Usually "self-hosted" is the default.
-    runs-on: [self-hosted, macOS]
+    runs-on: [self-hosted, macOS, ARM64]
 
     steps:
       - name: Checkout
@@ -15,12 +15,15 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python3 -m venv .venv
+          . .venv/bin/activate
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then python -m pip install -r requirements.txt; fi
 
       - name: Run visualization module
         run: |
           mkdir -p artifacts/visualization
+          . .venv/bin/activate
           cd src
           python visualization.py > ../artifacts/visualization/run.log 2>&1
 
