@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-web
+  namespace: analytics-gitops
+  labels:
+    app: analytics-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: analytics-web
+  template:
+    metadata:
+      labels:
+        app: analytics-web
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/tondeee/dev-env-lab-1-web:lab6-v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
