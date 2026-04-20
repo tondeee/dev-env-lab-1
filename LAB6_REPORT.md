@@ -16,6 +16,11 @@ Rollback виконується поверненням Git-стану до по�
 3. Argo CD у namespace `argocd`.
 4. GitHub репозиторій: `tondeee/dev-env-lab-1`.
 5. Kubernetes manifests у каталозі `gitops/`.
+6. Публічні endpoint-и:
+   - Застосунок: `http://20.93.160.132:30080`
+   - Argo CD: `https://20.93.160.132:31431`
+   - Prometheus: `http://20.93.160.132:9090`
+   - Grafana: `http://20.93.160.132:3000`
 
 ## Структура GitOps у репозиторії
 ```text
@@ -78,12 +83,18 @@ kubectl -n argocd get pods
 Після застосування `Application` Argo CD отримав стан `Synced`, а ресурси застосунку створені в `analytics-gitops`.
 
 ### 5. Демонстрація автоматичного оновлення
-У GitHub змінено `replicas` у `deployment.yaml` (наприклад, `2 -> 3`), виконано `commit` і `push`.  
-Argo CD автоматично виявив зміну та виконав синхронізацію без ручного `kubectl apply`.
+У GitHub змінено `replicas` у `deployment.yaml` (`2 -> 3`), виконано `commit` і `push`.  
+Argo CD виконав синхронізацію без ручного `kubectl apply`.
 
 ### 6. Демонстрація rollback
 Останню зміну скасовано через Git (`git revert <commit>`).  
-Argo CD автоматично повернув кластер до попередньої конфігурації (`replicas: 2`).
+Argo CD повернув кластер до попередньої конфігурації (`replicas: 2`).
+
+Примітка: у цьому середовищі для пришвидшення виявлення нового Git-стану використовувалась анотація:
+```bash
+kubectl -n argocd annotate application analytics-web-gitops argocd.argoproj.io/refresh=hard --overwrite
+```
+Після виявлення змін синхронізація застосунку виконувалась Argo CD автоматично.
 
 ### 7. Сумісність із моніторингом
 Після GitOps-оновлень перевірено:
@@ -94,12 +105,12 @@ Argo CD автоматично повернув кластер до попере
 
 ## Приклад commit, що викликав оновлення
 ```text
-<COMMIT_SHA> chore(gitops): scale analytics-web replicas from 2 to 3
+0a3c8bc chore(gitops): scale analytics-web replicas from 2 to 3 (autosync)
 ```
 
 ## Приклад rollback
 ```text
-<REVERT_COMMIT_SHA> revert: scale analytics-web replicas from 2 to 3
+2ea5dea Revert "chore(gitops): scale analytics-web replicas from 2 to 3 (autosync)"
 ```
 
 ## Скріншоти (placeholder-и для вставки)
