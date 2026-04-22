@@ -1,0 +1,105 @@
+services:
+  data_load:
+    build:
+      context: .
+      dockerfile: data_load/Dockerfile
+    environment:
+      DATASET_PATH: ${DATASET_PATH:-/workspace/data/raw/marketing_campaign.csv}
+      DB_PATH: ${DB_PATH:-/workspace/runtime/analytics.db}
+      REPORTS_DIR: ${REPORTS_DIR:-/workspace/reports}
+      PLOTS_DIR: ${PLOTS_DIR:-/workspace/plots}
+    volumes:
+      - ./data:/workspace/data:ro
+      - runtime_data:/workspace/runtime
+      - reports_data:/workspace/reports
+      - plots_data:/workspace/plots
+    networks:
+      - analytics_net
+
+  data_quality_analysis:
+    build:
+      context: .
+      dockerfile: data_quality_analysis/Dockerfile
+    depends_on:
+      - data_load
+    environment:
+      DB_PATH: ${DB_PATH:-/workspace/runtime/analytics.db}
+      REPORTS_DIR: ${REPORTS_DIR:-/workspace/reports}
+      PLOTS_DIR: ${PLOTS_DIR:-/workspace/plots}
+    volumes:
+      - runtime_data:/workspace/runtime
+      - reports_data:/workspace/reports
+      - plots_data:/workspace/plots
+    networks:
+      - analytics_net
+
+  data_research:
+    build:
+      context: .
+      dockerfile: data_research/Dockerfile
+    depends_on:
+      - data_load
+    environment:
+      DB_PATH: ${DB_PATH:-/workspace/runtime/analytics.db}
+      REPORTS_DIR: ${REPORTS_DIR:-/workspace/reports}
+      PLOTS_DIR: ${PLOTS_DIR:-/workspace/plots}
+    volumes:
+      - runtime_data:/workspace/runtime
+      - reports_data:/workspace/reports
+      - plots_data:/workspace/plots
+    networks:
+      - analytics_net
+
+  visualization:
+    build:
+      context: .
+      dockerfile: visualization/Dockerfile
+    depends_on:
+      - data_load
+    environment:
+      DB_PATH: ${DB_PATH:-/workspace/runtime/analytics.db}
+      REPORTS_DIR: ${REPORTS_DIR:-/workspace/reports}
+      PLOTS_DIR: ${PLOTS_DIR:-/workspace/plots}
+    volumes:
+      - runtime_data:/workspace/runtime
+      - reports_data:/workspace/reports
+      - plots_data:/workspace/plots
+    networks:
+      - analytics_net
+
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    depends_on:
+      - data_quality_analysis
+      - data_research
+      - visualization
+    environment:
+      PORT: ${WEB_PORT:-8000}
+      DB_PATH: ${DB_PATH:-/workspace/runtime/analytics.db}
+      REPORTS_DIR: ${REPORTS_DIR:-/workspace/reports}
+      PLOTS_DIR: ${PLOTS_DIR:-/workspace/plots}
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    volumes:
+      - runtime_data:/workspace/runtime
+      - reports_data:/workspace/reports
+      - plots_data:/workspace/plots
+    networks:
+      - analytics_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  runtime_data:
+  reports_data:
+  plots_data:
+
+networks:
+  analytics_net:
+    driver: bridge

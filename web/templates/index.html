@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ project_name }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+    header {
+      background: #111827;
+      color: white;
+      padding: 2rem;
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      overflow-x: auto;
+      display: block;
+    }
+    th, td {
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0.55rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      margin-bottom: 1rem;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>{{ project_name }}</h1>
+    <p>Контейнеризований багатомодульний проєкт для завантаження, перевірки, дослідження та візуалізації даних.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Опис сервісів</h2>
+      <div class="cards">
+        <div class="card"><strong>data_load</strong><br>Імпорт CSV у SQLite.</div>
+        <div class="card"><strong>data_quality_analysis</strong><br>Перевірка пропусків, дублікатів та типів.</div>
+        <div class="card"><strong>data_research</strong><br>Базова статистика та підсумковий звіт.</div>
+        <div class="card"><strong>visualization</strong><br>Побудова двох PNG-графіків.</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Попередній перегляд завантажених даних</h2>
+      {% if dataset_rows %}
+      <table>
+        <thead>
+          <tr>
+            {% for key in dataset_rows[0].keys() %}
+            <th>{{ key }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in dataset_rows %}
+          <tr>
+            {% for value in row.values() %}
+            <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>Дані ще не завантажені.</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2>Результати перевірки якості</h2>
+      <pre>{{ quality_report | tojson(indent=2) }}</pre>
+    </section>
+
+    <section>
+      <h2>Результати дослідження</h2>
+      <pre>{{ research_report | tojson(indent=2) }}</pre>
+    </section>
+
+    <section>
+      <h2>Візуалізації</h2>
+      {% for filename in visualization_report.get('generated_files', []) %}
+      <img src="/plots/{{ filename }}" alt="{{ filename }}">
+      {% else %}
+      <p>Візуалізації ще не згенеровані.</p>
+      {% endfor %}
+    </section>
+  </main>
+</body>
+</html>
